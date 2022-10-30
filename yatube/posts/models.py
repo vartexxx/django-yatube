@@ -18,7 +18,7 @@ class Group(models.Model):
     slug = models.SlugField(unique=True)
     description = models.TextField()
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.title
 
 
@@ -44,6 +44,9 @@ class Post(models.Model):
         blank=True,
         null=True
     )
+
+    def __str__(self) -> str:
+        return self.text
 
     # Класс Meta для упрощения сортировки по дате
     class Meta:
