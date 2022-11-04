@@ -3,6 +3,7 @@ Posts
 """
 from django.conf import settings
 from django.shortcuts import get_object_or_404, render
+from django.core.paginator import Paginator
 
 from .models import Group, Post
 
@@ -14,10 +15,13 @@ def index(request):
     """
     template = 'posts/index.html'
     title = 'Это главная страница проекта Yatube'
-    posts = Post.objects.all()[:settings.CONST_1]
+    post_list = Post.objects.all()
+    paginator = Paginator(post_list, settings.CONST_1)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
     context = {
         'title': title,
-        'posts': posts,
+        'page_obj': page_obj,
     }
     return render(request, template, context)
 
