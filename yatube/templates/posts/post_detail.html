@@ -1,5 +1,5 @@
 {% extends 'base.html' %}
-{% block title %}Пост {{ post_title }}{% endblock %}
+{% block title %}Пост{{ post_title }}{% endblock %}
 {% block content %}
 <div class="row">
     <aside class="col-12 col-md-3">
@@ -9,15 +9,15 @@
             </li>
             {% if post.group %}
             <li class="list-group-item">
-                Группа: {{ post.group.title }}
+                Группа: {{ post.group }}
                 <a href="{% url 'posts:group_list' post.group.slug %}">все записи группы</a>
                 {% endif %}
             </li>
             <li class="list-group-item">
-                Автор: {{ post.author.get_full_name }} {{ author }}
+                Автор: {{ post.author.get_full_name }}
             </li>
             <li class="list-group-item d-flex justify-content-between align-items-center">
-                Всего постов автора: <span>{{ author_posts }}</span>
+                Всего постов автора: <span>{{ count }}</span>
             </li>
             <li class="list-group-item">
                 <a href="{% url 'posts:profile' post.author %}">все посты пользователя</a>
@@ -28,10 +28,11 @@
         <p>
             {{ post.text }}
         </p>
-        <!-- эта кнопка видна только автору -->
+        {% if post.author == user %}
         <a class="btn btn-primary" href="{% url 'posts:post_edit' post.pk %}">
             редактировать запись
         </a>
+        {% endif %}
     </article>
 </div>
 {% endblock %}

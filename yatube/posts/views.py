@@ -35,58 +35,66 @@ def group_posts(request, slug):
     текущего приложения
     """
     group = get_object_or_404(Group, slug=slug)
-    posts = Post.objects.all()[:settings.CONST_1]
+    posts = group.posts.all()
+    paginator = Paginator(posts, settings.CONST_1)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
     template = 'posts/group_list.html'
     group_title = 'Здесь будет информация о группах проекта Yatube'
     context = {
         'group_title': group_title,
         'group': group,
-        'posts': posts,
+        'page_obj': page_obj
     }
     return render(request, template, context)
 
+
 def profile(request, username):
-    author = get_object_or_404(User, username=username)
-    posts = author.posts.all()
-    count = author.posts.count()
+    """Фунеция представления страницы пользователя"""
+    user = get_object_or_404(User, username=username)
+    posts = Post.objects.filter(author=user)
     paginator = Paginator(posts, settings.CONST_1)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
-    template = 'posts/post_profile.html'
+    template = 'posts/profile.html'
     context = {
         'page_obj': page_obj,
+        'posts': posts,
+        'author': user,
+    }
+
+    return render(request, template, context)
+
+
+def post_detail(request, post_id):
+    """Функция представления полной версии поста пользователя"""
+    post = get_object_or_404(Post, pk=post_id)
+    user = get_object_or_404(User, username=post.author)
+    count = Post.objects.filter(author=user).count()
+    title = post.text[:settings.CONST_2]
+    template = 'posts/post_detail.html'
+    context = {
+        'post': post,
+        'title': title,
         'count': count,
-        'author': author,
     }
     return render(request, template, context)
 
-def post_detail(request, post_id):
-    post = get_object_or_404(Post, pk=post_id)
-    title = post.text[:settings.CONST_2]
-    pub_date = post.pub_date
-    author = post.author
-    author_posts = author.posts.all().count()
-    template = 'posts/post_detail.html'
-    context = {
-        'author': author,
-        'author_posts': author_posts,
-        'post': post,
-        'title': title,
-        'pub_date': pub_date,
-    }
-    return render(request, template, context)
 
 @login_required
 def post_create(request):
+    """Функция представления страницы создания нового поста"""
     if request.method == 'POST':
+
         form = PostForm(request.POST or None)
+
         if form.is_valid():
             post = form.save(commit=False)
             post.author = request.user
-            post.save
+            post.save()
 
             return redirect('posts:profile', request.user)
-    
+
     form = PostForm()
     groups = Group.objects.all()
     template = 'posts/create_post.html'
@@ -97,22 +105,30 @@ def post_create(request):
     }
     return render(request, template, context)
 
+
 @login_required
 def post_edit(request, post_id):
+    """Функция представления редактирования поста пользователя"""
     post = get_object_or_404(Post, pk=post_id)
-    author = post.author
-    groups = Group.objects.all()
+
+    if not request.user == post.author:
+        return redirect('posts:post_detail', post_id)
+
+    if request.method == 'POST':
+        form = PostForm(request.POST, instance=post)
+
+        if form.is_valid():
+            post = form.save(commit=False)
+            post.save()
+
+            return redirect('posts:post_detail', post_id)
+
+    form = PostForm(instance=post)
     template = 'posts/create_post.html'
-    form = PostForm(request.POST or None)
-    if request.user == author:
-        if request.method == 'POST' and form.is_valid:
-            post = form.save()
-            return redirect('post:post_detail', post_id)
-        context = {
-            'form': form,
-            'groups': groups,
-            'is_edit': True,
-            'post': post,
-        }
-        return render(request, template, context)
-    return redirect('post:post_detail', post_id)
+    context = {
+        'form': form,
+        'post': post,
+        'is_edit': True,
+    }
+
+    return render(request, template, context)
