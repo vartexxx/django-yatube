@@ -96,3 +96,23 @@ def post_create(request):
         'is_edit': False,
     }
     return render(request, template, context)
+
+@login_required
+def post_edit(request, post_id):
+    post = get_object_or_404(Post, pk=post_id)
+    author = post.author
+    groups = Group.objects.all()
+    template = 'posts/create_post.html'
+    form = PostForm(request.POST or None)
+    if request.user == author:
+        if request.method == 'POST' and form.is_valid:
+            post = form.save()
+            return redirect('post:post_detail', post_id)
+        context = {
+            'form': form,
+            'groups': groups,
+            'is_edit': True,
+            'post': post,
+        }
+        return render(request, template, context)
+    return redirect('post:post_detail', post_id)
