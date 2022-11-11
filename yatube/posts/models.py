@@ -44,7 +44,11 @@ class Post(models.Model):
     добавляется текущая дата);
     автор - author (ссылка на модель User)
     сообщество - group (ссылка на модель Group)"""
-    text = models.TextField(verbose_name="Текст поста")
+    text = models.TextField(
+        max_length=200,
+        verbose_name="Текст поста",
+        help_text="Введите текст поста"
+    )
     pub_date = models.DateTimeField(
         verbose_name="Дата публикации",
         auto_now_add=True,
