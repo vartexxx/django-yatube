@@ -17,7 +17,7 @@ class PostsURLTests(TestCase):
         cls.user = User.objects.create_user(username='user')
         cls.user_author = User.objects.create_user(username='author')
         cls.post = Post.objects.create(
-            author=cls.user,
+            author=cls.user_author,
             text='Тестовый пост',
         )
         cls.group = Group.objects.create(
@@ -91,7 +91,7 @@ class PostsURLTests(TestCase):
             reverse(
                 'posts:post_edit',
                 kwargs={'post_id': self.post.id}
-            ): HTTPStatus.FOUND,
+            ): HTTPStatus.OK,
             reverse(
                 'posts:post_create'
             ): HTTPStatus.OK,
@@ -124,7 +124,7 @@ class PostsURLTests(TestCase):
             reverse(
                 'posts:post_edit',
                 kwargs={'post_id': self.post.id}
-            ): HTTPStatus.OK,  # здесь должно быть FOUND
+            ): HTTPStatus.FOUND,
             reverse(
                 'posts:post_create'
             ): HTTPStatus.OK,
