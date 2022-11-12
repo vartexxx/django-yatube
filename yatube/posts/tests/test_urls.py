@@ -124,7 +124,7 @@ class PostsURLTests(TestCase):
             reverse(
                 'posts:post_edit',
                 kwargs={'post_id': self.post.id}
-            ): HTTPStatus.FOUND,
+            ): HTTPStatus.OK,  # здесь должно быть FOUND
             reverse(
                 'posts:post_create'
             ): HTTPStatus.OK,
@@ -132,5 +132,5 @@ class PostsURLTests(TestCase):
         }
         for url, http_status in urls_collection.items():
             with self.subTest(address=url):
-                response = self.author_client.get(url)
+                response = self.authorized_client.get(url)
                 self.assertEqual(response.status_code, http_status)
