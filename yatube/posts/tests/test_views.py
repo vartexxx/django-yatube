@@ -115,7 +115,7 @@ class PostViewsTest(TestCase):
             response.context.get('post').author.username,
             'user'
         )
-    
+
     def test_eedit_post_page_show_correct_context(self):
         """
         Шаблон create_post при редактировании поста сформирован
@@ -156,6 +156,7 @@ class PostViewsTest(TestCase):
                 form_field = response.context.get('form').fields.get(value)
                 self.assertIsInstance(form_field, expected)
 
+
 class PaginatorViewsTest(TestCase):
     @classmethod
     def setUpClass(cls) -> None:
@@ -173,11 +174,11 @@ class PaginatorViewsTest(TestCase):
                 group=cls.group,
                 text=f'Текст {i} - го поста',
             )
-    
+
     def setUp(self) -> None:
         self.authorized_client = Client()
         self.authorized_client.force_login(self.user)
-    
+
     def test_first_page_of_index_contains_ten_records(self):
         """Количество постов на первой странице шаблона index равно 10"""
         response = self.authorized_client.get(reverse('posts:index'))
@@ -185,7 +186,7 @@ class PaginatorViewsTest(TestCase):
             len(response.context['page_obj']),
             settings.LIMIT_OF_POSTS
         )
-    
+
     def test_second_page_of_index_contains_three_records(self):
         """Количество постов на второй странцие шаблона index равно 3"""
         response = self.authorized_client.get(
@@ -233,7 +234,7 @@ class PaginatorViewsTest(TestCase):
             len(response.context['page_obj']),
             settings.LIMIT_OF_POSTS
         )
-    
+
     def test_second_page_of_profile_contains_three_records(self):
         """Количество постов на второй странице шалона profile"""
         response = self.authorized_client.get(
