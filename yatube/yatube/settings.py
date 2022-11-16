@@ -25,7 +25,12 @@ SECRET_KEY = 'm2)qkk4bcem3dde&_&n1!cwt)$0gxolys!nol2=0wr$q0mlcg+'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = [
+    'localhost',
+    '127.0.0.1',
+    '[::1]',
+    'testserver',
+]
 
 
 # Application definition
@@ -57,8 +62,9 @@ ROOT_URLCONF = 'yatube.urls'
 
 TEMPLATES_DIR = os.path.join(BASE_DIR, 'templates')
 
+CROP_TEXT = 15
 LIMIT_OF_POSTS = 10
-CROP_TEXT = 40
+
 
 TEMPLATES = [
     {
