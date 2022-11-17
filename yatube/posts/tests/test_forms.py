@@ -1,5 +1,10 @@
+import shutil
+import tempfile
+
 from django import forms
-from django.test import Client, TestCase
+from django.conf import settings
+from django.core.files.uploadedfile import SimpleUploadedFile
+from django.test import Client, TestCase, override_settings
 from django.urls import reverse
 
 from ..models import Post, Group, User
@@ -7,11 +12,34 @@ from ..models import Post, Group, User
 USERNAME = 'user'
 SLUG_1 = 'slug-one'
 SLUG_2 = 'slug-two'
+IMAGE_NAME_1 = 'small.gif'
+IMAGE_CONTENT_TYPE_1 = 'image/gif'
+IMAGE_CONTENT_1 = (
+    b'\x47\x49\x46\x38\x39\x61\x02\x00'
+    b'\x01\x00\x80\x00\x00\x00\x00\x00'
+    b'\xFF\xFF\xFF\x21\xF9\x04\x00\x00'
+    b'\x00\x00\x00\x2C\x00\x00\x00\x00'
+    b'\x02\x00\x01\x00\x00\x02\x02\x0C'
+    b'\x0A\x00\x3A'
+)
+IMAGE_NAME_2 = 'small-two.gif'
+IMAGE_CONTENT_TYPE_2 = 'image-two/gif'
+IMAGE_CONTENT_2 = (
+    b'\x47\x49\x46\x38\x39\x61\x02\x00'
+    b'\x01\x30\x80\x00\x00\x00\x00\x00'
+    b'\xFF\xFF\xFF\x21\xF9\x04\x00\x00'
+    b'\x00\x04\x00\x2C\x00\x02\x00\x00'
+    b'\x07\x00\x31\x00\x00\x02\x02\x0C'
+    b'\x0A\x00\x3A'
+)
 
 POST_CREATE_URL = reverse('posts:post_create')
 PROFILE_URL = reverse('posts:profile', args=[USERNAME])
 
+TEMP_MEDIA_ROOT = tempfile.mkdtemp(dir=settings.BASE_DIR)
 
+
+@override_settings(MEDIA_ROOT=TEMP_MEDIA_ROOT)
 class PostsCreateFormTests(TestCase):
     @classmethod
     def setUpClass(cls) -> None:
@@ -35,10 +63,23 @@ class PostsCreateFormTests(TestCase):
         cls.POST_DETAIL_URL = reverse('posts:post_detail', args=[cls.post.id])
         cls.POST_EDIT_URL = reverse('posts:post_edit', args=[cls.post.id])
         cls.posts_initially = Post.objects.count()
+        cls.another = Client()
+        cls.another.force_login(cls.user)
+        cls.image_1 = SimpleUploadedFile(
+            name=IMAGE_NAME_1,
+            content=IMAGE_CONTENT_1,
+            content_type=IMAGE_CONTENT_TYPE_1,
+        )
+        cls.image_2 = SimpleUploadedFile(
+            name=IMAGE_NAME_2,
+            content=IMAGE_CONTENT_2,
+            content_type=IMAGE_CONTENT_TYPE_2,
+        )
 
-    def setUp(self) -> None:
-        self.another = Client()
-        self.another.force_login(self.user)
+    @classmethod
+    def tearDownClass(cls):
+        shutil.rmtree(settings.MEDIA_ROOT, ignore_errors=True)
+        super().tearDownClass()
 
     def test_create_post(self):
         """Проверка создания новой записи"""
@@ -46,6 +87,7 @@ class PostsCreateFormTests(TestCase):
         form_data = {
             'text': 'Тестовый пост',
             'group': self.group_1.id,
+            'image': self.image_1
         }
         response = self.another.post(
             POST_CREATE_URL,
@@ -63,12 +105,17 @@ class PostsCreateFormTests(TestCase):
         self.assertEqual(post.group.id, form_data['group'])
         self.assertEqual(post.author, self.user)
         self.assertRedirects(response, PROFILE_URL)
+        self.assertEqual(
+            post.image.name,
+            f'posts/{form_data["image"].name}'
+        )
 
     def test_edit_post(self):
         """Проверка редактирования записи"""
         form_data = {
             'text': 'Изменённый текст 123',
             'group': self.group_2.id,
+            'image': self.image_2,
         }
         response = self.another.post(
             self.POST_EDIT_URL,
@@ -80,6 +127,10 @@ class PostsCreateFormTests(TestCase):
         self.assertEqual(post.text, form_data['text'])
         self.assertEqual(post.group.id, form_data['group'])
         self.assertEqual(post.author, self.post.author)
+        self.assertEqual(
+            post.image.name,
+            f'posts/{form_data["image"].name}'
+        )
 
     def test_create_post_page_show_correct_context(self):
         """

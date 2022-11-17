@@ -16,6 +16,9 @@
             Дата публикации: {{ post.pub_date|date:"d E Y" }}
           </li>
         </ul>
+        {% thumbnail post.image "480x339" crop="center" upscale=True as im %}
+          <img class="card-img" src="{{ im.url }}" />
+        {% endthumbnail %}
         <p>{{ post.text|linebreaks|slice:":200" }}
         <a href="{% url 'posts:post_detail' post.pk %}">Читать дальше</a></p>
         {% if post.group %}

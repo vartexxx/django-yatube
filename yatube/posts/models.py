@@ -70,7 +70,7 @@ class Post(models.Model):
         help_text="Выбор группы",
     )
     image = models.ImageField(
-        verbose_name='Картинка',
+        'Картинка',
         upload_to='posts/',
         blank=True
     )

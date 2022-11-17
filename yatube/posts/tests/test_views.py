@@ -1,5 +1,9 @@
+import shutil
+import tempfile
+
 from django.conf import settings
-from django.test import Client, TestCase
+from django.test import Client, TestCase, override_settings
+from django.core.files.uploadedfile import SimpleUploadedFile
 from django.urls import reverse
 
 from ..models import Group, Post, User
@@ -17,7 +21,23 @@ GROUP_LIST_URL_2 = reverse('posts:group_list', args=[SLUG_2])
 GROUP_LIST_URL_3 = reverse('posts:group_list', args=[SLUG_TEST])
 PROFILE_URL = reverse('posts:profile', args=[USERNAME])
 
+TEMP_MEDIA_ROOT = tempfile.mkdtemp(dir=settings.BASE_DIR)
+SMALL_GIF = (
+    b'\x47\x49\x46\x38\x39\x61\x02\x00'
+    b'\x01\x00\x80\x00\x00\x00\x00\x00'
+    b'\xFF\xFF\xFF\x21\xF9\x04\x00\x00'
+    b'\x00\x00\x00\x2C\x00\x00\x00\x00'
+    b'\x02\x00\x01\x00\x00\x02\x02\x0C'
+    b'\x0A\x00\x3B'
+)
+UPLOADED = SimpleUploadedFile(
+    name='small.gif',
+    content=SMALL_GIF,
+    content_type='image/gif'
+)
 
+
+@override_settings(MEDIA_ROOT=TEMP_MEDIA_ROOT)
 class PostViewsTest(TestCase):
     @classmethod
     def setUpClass(cls) -> None:
@@ -37,18 +57,23 @@ class PostViewsTest(TestCase):
             author=cls.user,
             text='Тестовый пост',
             group=cls.group,
+            image=UPLOADED,
         )
+        cls.another = Client()
+        cls.another.force_login(cls.user)
         cls.POST_DETAIL_URL = reverse('posts:post_detail', args=[cls.post.id])
 
-    def setUp(self) -> None:
-        self.another = Client()
-        self.another.force_login(self.user)
+    @classmethod
+    def tearDownClass(cls):
+        super().tearDownClass()
+        shutil.rmtree(TEMP_MEDIA_ROOT, ignore_errors=True)
 
     def asert_page_has_attribute(self, post):
         self.assertEqual(post.text, self.post.text)
         self.assertEqual(post.author, self.post.author)
         self.assertEqual(post.group, self.post.group)
         self.assertEqual(post.id, self.post.id)
+        self.assertEqual(post.image, self.post.image)
 
     def test_pages_show_correct_context(self):
         """
