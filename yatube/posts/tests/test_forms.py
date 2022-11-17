@@ -7,7 +7,7 @@ from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import Client, TestCase, override_settings
 from django.urls import reverse
 
-from ..models import Post, Group, User
+from ..models import Post, Group, Comment, User
 
 USERNAME = 'user'
 SLUG_1 = 'slug-one'
@@ -35,6 +35,7 @@ IMAGE_CONTENT_2 = (
 
 POST_CREATE_URL = reverse('posts:post_create')
 PROFILE_URL = reverse('posts:profile', args=[USERNAME])
+LOGIN = reverse('users:login')
 
 TEMP_MEDIA_ROOT = tempfile.mkdtemp(dir=settings.BASE_DIR)
 
@@ -62,7 +63,11 @@ class PostsCreateFormTests(TestCase):
         )
         cls.POST_DETAIL_URL = reverse('posts:post_detail', args=[cls.post.id])
         cls.POST_EDIT_URL = reverse('posts:post_edit', args=[cls.post.id])
+        cls.COMMENT = reverse('posts:add_comment', args=[cls.post.id])
+        cls.COMMENT_REDIRECT = f'{LOGIN}?next={cls.COMMENT}'
         cls.posts_initially = Post.objects.count()
+        cls.comments_initially = Comment.objects.count()
+        cls.guest = Client()
         cls.another = Client()
         cls.another.force_login(cls.user)
         cls.image_1 = SimpleUploadedFile(
@@ -146,3 +151,55 @@ class PostsCreateFormTests(TestCase):
             with self.subTest(value=value):
                 form_field = response.context.get('form').fields.get(value)
                 self.assertIsInstance(form_field, expected)
+
+    def test_posts_comment_form(self):
+        """Проверка формы добавления комментария"""
+        comments_before_create_new = set(Comment.objects.all())
+        form_data = {
+            'text': 'Тестовый комментарий к посту'
+        }
+        response = self.another.post(
+            self.COMMENT,
+            data=form_data,
+            follow=True
+        )
+        self.assertEqual(
+            Comment.objects.count(),
+            self.comments_initially + 1
+        )
+        created_com = set(Comment.objects.all()) - comments_before_create_new
+        self.assertEqual(len(created_com), 1)
+        comment = created_com.pop()
+        self.assertEqual(comment.text, form_data['text'])
+        self.assertEqual(comment.author, self.user)
+        self.assertEqual(comment.post, self.post)
+        self.assertRedirects(response, self.POST_DETAIL_URL)
+
+    def test_posts_comments_show_correct_context(self):
+        """
+        Шаблон добавления комментария сформирован
+        с правильным контекстом
+        """
+        response = self.another.get(self.POST_DETAIL_URL)
+        form_fields = {
+            'text': forms.fields.CharField,
+        }
+        for value, expected in form_fields.items():
+            with self.subTest(value=value):
+                form_field = response.context.get('form').fields.get(value)
+                self.assertIsInstance(form_field, expected)
+
+    def test_posts_comments_guest_cant_create(self):
+        """Проверка, что гость не может создать комментарий"""
+        form_data = {
+            'text': 'Новый комментарий от гостя'
+        }
+        response = self.guest.post(
+            self.COMMENT,
+            data=form_data
+        )
+        self.assertEqual(Comment.objects.count(), 0)
+        self.assertRedirects(
+            response,
+            self.COMMENT_REDIRECT
+        )
