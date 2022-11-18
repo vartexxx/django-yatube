@@ -4,7 +4,7 @@ from django.core.paginator import Paginator
 from django.shortcuts import get_object_or_404, redirect, render
 
 from .forms import PostForm, CommentForm
-from .models import Group, Post, User
+from .models import Group, Post, Follow, User
 
 
 def get_page(stack, request):
@@ -97,3 +97,37 @@ def add_comment(request, post_id):
         comment.post = post
         comment.save()
     return redirect('posts:post_detail', post_id=post_id)
+
+
+@login_required
+def follow_index(request):
+    return render(
+        request,
+        'posts/follow.html',
+        {
+            'page_obj': get_page(
+                Post.objects.filter(author__following__user=request.user),
+                request
+            )
+        }
+    )
+
+
+@login_required
+def profile_follow(request, username):
+    if username != request.user.username:
+        Follow.objects.get_or_create(
+            user=request.user,
+            author=get_object_or_404(User, username=username)
+        )
+    return redirect('posts:profile', username=username)
+
+
+@login_required
+def profile_unfollow(request, username):
+    author = get_object_or_404(User, username=username)
+    Follow.objects.filter(
+        user=request.user,
+        author=author
+    ).delete()
+    return redirect('posts:profile', username=author.username)
