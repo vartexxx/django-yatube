@@ -122,6 +122,21 @@ class PostViewsTest(TestCase):
             self.another.get(PROFILE_URL).context.get('author')
         )
 
+    def test_posts_index_page_caches(self):
+        """Проверка работа кеша на главной странице шаблона index."""
+        response_1 = self.another.get(INDEX_URL).content
+        Post.objects.all().delete()
+        response_2 = self.another.get(INDEX_URL).content
+        self.assertEqual(response_1, response_2)
+        cache.clear()
+        response_3 = self.another.get(INDEX_URL).content
+        self.assertNotEqual(response_1, response_3)
+
+    def test_404page_use_correct_template(self):
+        """Страница 404 использует соответствующий шаблон."""
+        response = self.another.get('/unexisting_page/')
+        self.assertTemplateUsed(response, 'core/404.html')
+
 
 class PaginatorViewsTest(TestCase):
     @classmethod
