@@ -22,6 +22,7 @@ GROUP_LIST_URL_1 = reverse('posts:group_list', args=[SLUG_1])
 GROUP_LIST_URL_2 = reverse('posts:group_list', args=[SLUG_2])
 GROUP_LIST_URL_3 = reverse('posts:group_list', args=[SLUG_TEST])
 PROFILE_URL = reverse('posts:profile', args=[USERNAME])
+FOLLOW_INDEX_URL = reverse('posts:follow_index')
 
 TEMP_MEDIA_ROOT = tempfile.mkdtemp(dir=settings.BASE_DIR)
 SMALL_GIF = (
@@ -136,6 +137,22 @@ class PostViewsTest(TestCase):
         """Страница 404 использует соответствующий шаблон."""
         response = self.another.get('/unexisting_page/')
         self.assertTemplateUsed(response, 'core/404.html')
+
+    def test_posts_new_post_found_in_followers_news(self):
+        """
+        Новая запись пользователя появляется в ленте тех,
+        кто на него подписан.
+        """
+        urls = [
+            FOLLOW_INDEX_URL,
+            GROUP_LIST_URL_2
+        ]
+        for url in urls:
+            with self.subTest(url=url):
+                self.assertNotIn(
+                    self.post,
+                    self.another.get(url).context['page_obj']
+                )
 
 
 class PaginatorViewsTest(TestCase):

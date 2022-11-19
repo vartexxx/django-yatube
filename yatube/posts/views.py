@@ -40,9 +40,14 @@ def group_posts(request, slug):
 def profile(request, username):
     """Фунеция представления страницы пользователя"""
     author = get_object_or_404(User, username=username)
+    following = request.user.is_authenticated and Follow.objects.filter(
+        user=request.user,
+        author=author
+    ).exists()
     return render(request, 'posts/profile.html', {
         'author': author,
         'page_obj': get_page(author.posts.all(), request),
+        'following': following,
     })
 
 
