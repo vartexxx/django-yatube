@@ -1,7 +1,6 @@
 import shutil
 import tempfile
 
-from django.core.cache import cache
 from django.conf import settings
 from django.test import Client, TestCase, override_settings
 from django.core.files.uploadedfile import SimpleUploadedFile
@@ -119,14 +118,6 @@ class PostViewsTest(TestCase):
             self.user,
             self.another.get(PROFILE_URL).context.get('author')
         )
-
-    #def test_posts_index_page_cache(self):
-    #    """Проверка кеша на странице index"""
-    #    response_1 = self.another.get(INDEX_URL).content
-    #    Post.objects.all().delete()
-    #    response_2 = self.another.get(INDEX_URL).content
-    #    self.assertEqual(response_1, response_2)
-    #    cache.clear()
 
 
 class PaginatorViewsTest(TestCase):

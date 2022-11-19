@@ -1,19 +1,29 @@
-{% extends 'base.html' %} 
-
-{% block title %}Главная страница проекта Yatube{% endblock %} 
-
-{% block content %} 
-{% load cache %} 
-{% load thumbnail %} 
-  <div class='container py-5'> 
-    {% include 'posts/includes/switcher.html' %} 
-  {% cache 20 index_page with page_obj %} 
-    <h1>Главная страница</h1> 
-    <h4>Последние записи пользователей</h4> 
-  {% for post in page_obj %}
-    {% include 'posts/includes/post.html'%}
-  {% if not forloop.last %}<hr>{% endif %} 
-{% endfor %} 
-  {% include 'posts/includes/paginator.html' %} 
-{% endcache %}  
-{% endblock %} 
+{% extends 'base.html' %}
+{% load thumbnail %}
+{% block title %}Главная страница проекта YaTube{% endblock %}
+{% block content %}
+  <div class="container py-5">     
+    <h1>Последние обновления на сайте</h1>
+    {% for post in page_obj %}
+      <article>
+        <ul>
+          <li>
+            Автор: <a href="{% url 'posts:profile' post.author.username %}">{{ post.author.get_full_name }}</a>
+          </li>
+          <li>
+            Дата публикации: {{ post.pub_date|date:"d E Y" }}
+          </li>
+        </ul>
+        {% thumbnail post.image "480x339" crop="center" upscale=True as im %}
+          <img class="card-img" src="{{ im.url }}" />
+        {% endthumbnail %}
+        <p>{{ post.text|linebreaksbr }}</p>
+        {% if post.group %}
+          <a href="{% url 'posts:group_list' post.group.slug %}">#{{ post.group }}</a>
+        {% endif %}
+        {% if not forloop.last %}<hr>{% endif %}
+      </article>
+    {% endfor %}
+    {% include 'posts/includes/paginator.html' %}
+  </div>
+{% endblock %}
