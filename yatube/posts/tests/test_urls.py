@@ -15,6 +15,9 @@ PROFILE_URL = reverse('posts:profile', args=[USERNAME])
 POST_CREATE_URL = reverse('posts:post_create')
 LOGIN = reverse('users:login')
 NON_EXISTING_PAGE_URL = '/non_existing_page/'
+FOLLOW_INDEX_URL = reverse('posts:follow_index')
+PROFILE_FOLLOW_URL = reverse('posts:profile_follow', args=[USERNAME])
+PROFILE_UNFOLLOW_URL = reverse('posts:profile_unfollow', args=[USERNAME])
 
 OK = HTTPStatus.OK
 FOUND = HTTPStatus.FOUND
