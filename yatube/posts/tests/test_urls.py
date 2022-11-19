@@ -1,5 +1,6 @@
 from http import HTTPStatus
 from django.test import TestCase, Client
+from django.core.cache import cache
 from django.urls import reverse
 
 from ..models import Post, Group, User
@@ -92,6 +93,7 @@ class PostsURLTests(TestCase):
 
     def test_posts_urls_uses_correct_templates(self):
         """Проверка использования URL корректных шаблонов."""
+        cache.clear()
         urls_for_template = [
             ['posts/index.html', INDEX_URL],
             ['posts/group_list.html', GROUP_LIST_URL],

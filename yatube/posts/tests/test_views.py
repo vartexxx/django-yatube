@@ -1,8 +1,10 @@
 import shutil
 import tempfile
 
+
 from django.conf import settings
 from django.test import Client, TestCase, override_settings
+from django.core.cache import cache
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.urls import reverse
 
@@ -80,6 +82,7 @@ class PostViewsTest(TestCase):
         Шаблоны страниц index, group_list, profile, post_detail
         сформированы с правильным контекстом.
         """
+        cache.clear()
         urls = [
             [INDEX_URL, 'page_obj'],
             [GROUP_LIST_URL_1, 'page_obj'],
@@ -141,6 +144,7 @@ class PaginatorViewsTest(TestCase):
 
     def test_correct_the_number_of_posts_on_the_pages(self):
         """Проверка количества постов на странице первой и второй."""
+        cache.clear()
         NEXT_PAGE = '?page=2'
         urls = [
             [INDEX_URL, settings.LIMIT_OF_POSTS],
