@@ -1,5 +1,6 @@
 from http import HTTPStatus
 from django.test import TestCase, Client
+from django.core.cache import cache
 from django.urls import reverse
 
 from ..models import Post, Group, User
@@ -14,6 +15,9 @@ PROFILE_URL = reverse('posts:profile', args=[USERNAME])
 POST_CREATE_URL = reverse('posts:post_create')
 LOGIN = reverse('users:login')
 NON_EXISTING_PAGE_URL = '/non_existing_page/'
+FOLLOW_INDEX_URL = reverse('posts:follow_index')
+PROFILE_FOLLOW_URL = reverse('posts:profile_follow', args=[USERNAME])
+PROFILE_UNFOLLOW_URL = reverse('posts:profile_unfollow', args=[USERNAME])
 
 OK = HTTPStatus.OK
 FOUND = HTTPStatus.FOUND
@@ -38,6 +42,14 @@ class PostsURLTests(TestCase):
         )
         cls.POST_DETAIL_URL = reverse('posts:post_detail', args=[cls.post.id])
         cls.POST_EDIT_URL = reverse('posts:post_edit', args=[cls.post.id])
+        cls.PROFILE_FOLLOW_AUTHOR = reverse(
+            'posts:profile_follow',
+            args=[cls.user_author]
+        )
+        cls.PROFILE_UNFOLLOW_AUTHOR = reverse(
+            'posts:profile_follow',
+            args=[cls.user_author]
+        )
 
     def setUp(self) -> None:
         self.guest = Client()
@@ -62,6 +74,12 @@ class PostsURLTests(TestCase):
             [self.POST_EDIT_URL, self.author, OK],
             [self.POST_EDIT_URL, self.another, FOUND],
             [POST_CREATE_URL, self.another, OK],
+            [FOLLOW_INDEX_URL, self.guest, FOUND],
+            [FOLLOW_INDEX_URL, self.author, OK],
+            [PROFILE_FOLLOW_URL, self.guest, FOUND],
+            [self.PROFILE_FOLLOW_AUTHOR, self.author, FOUND],
+            [PROFILE_UNFOLLOW_URL, self.guest, FOUND],
+            [self.PROFILE_UNFOLLOW_AUTHOR, self.author, FOUND],
         ]
         for url, client, status in urls:
             with self.subTest(url=url, client=client):
@@ -92,6 +110,7 @@ class PostsURLTests(TestCase):
 
     def test_posts_urls_uses_correct_templates(self):
         """Проверка использования URL корректных шаблонов."""
+        cache.clear()
         urls_for_template = [
             ['posts/index.html', INDEX_URL],
             ['posts/group_list.html', GROUP_LIST_URL],
@@ -99,6 +118,7 @@ class PostsURLTests(TestCase):
             ['posts/create_post.html', POST_CREATE_URL],
             ['posts/post_detail.html', self.POST_DETAIL_URL],
             ['posts/create_post.html', self.POST_EDIT_URL],
+            ['posts/follow.html', FOLLOW_INDEX_URL],
         ]
         for template, url in urls_for_template:
             with self.subTest(url=url):
