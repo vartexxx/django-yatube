@@ -1,3 +1,18 @@
-# hw04_tests
+# Проект социальной сети Yatube
+## Описание
+✨Создание проекта Yatube социальной сети
+### Технологии
+- Python
+- SQLite
+- Django 2.2.19
+- Bootstrap
 
-[![CI](https://github.com/yandex-praktikum/hw04_tests/actions/workflows/python-app.yml/badge.svg?branch=master)](https://github.com/yandex-praktikum/hw04_tests/actions/workflows/python-app.yml)
+### Запуск проекта в dev-режиме
+- Создайте и активируйте виртуальное окружение
+- Установите зависимости из файла requirements.txt
+```pip install -r requirements.txt```
+- В папке с файлом manage.py выполните команду:
+```python3 manage.py runserver```
+
+### Автор
+✨vartexx✨
