@@ -7,12 +7,6 @@ User = get_user_model()
 
 
 class Group(models.Model):
-    """Модель представления Группы(сообщества)
-    имеет следующую структуру и ограничения:
-    имя - tittle (длина не более 200 символов)
-    адрес - slug (уникальное значение);
-    описание - description
-    """
     title = models.CharField(
         max_length=200,
         verbose_name="Название группы",
@@ -37,13 +31,6 @@ class Group(models.Model):
 
 
 class Post(models.Model):
-    """Модель представления Постов(записей)
-    имеет следующую стркутуру и ограничения:
-    текст - text;
-    дата публикации - pub_date(автоматически
-    добавляется текущая дата);
-    автор - author (ссылка на модель User)
-    сообщество - group (ссылка на модель Group)"""
     text = models.TextField(
         verbose_name="Текст поста",
         help_text="Введите текст поста"

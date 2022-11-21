@@ -16,20 +16,15 @@ def get_page(stack, request):
 
 @cache_page(20)
 def index(request):
-    """Функция представления главной страницы проекта
-    Yatube, с учётом сортировки количества постов для
-    текущего приложения
-    """
     return render(request, 'posts/index.html', {
-        'page_obj': get_page(Post.objects.all(), request),
+        'page_obj': get_page(
+            Post.objects.select_related('group', 'author').all(),
+            request
+        ),
     })
 
 
 def group_posts(request, slug):
-    """Функция представления страницы групп для проекта
-    Yatube, с учётом сортировки количества постов для
-    текущего приложения
-    """
     group = get_object_or_404(Group, slug=slug)
     return render(request, 'posts/group_list.html', {
         'group': group,
@@ -38,7 +33,6 @@ def group_posts(request, slug):
 
 
 def profile(request, username):
-    """Фунеция представления страницы пользователя"""
     author = get_object_or_404(User, username=username)
     following = request.user.is_authenticated and Follow.objects.filter(
         user=request.user,
@@ -52,7 +46,6 @@ def profile(request, username):
 
 
 def post_detail(request, post_id):
-    """Функция представления полной версии поста пользователя"""
     return render(request, 'posts/post_detail.html', {
         'post': get_object_or_404(Post, pk=post_id),
         'form': CommentForm(request.POST or None),
@@ -61,7 +54,6 @@ def post_detail(request, post_id):
 
 @login_required
 def post_create(request):
-    """Функция представления страницы создания нового поста"""
     form = PostForm(
         request.POST or None,
         files=request.FILES or None
@@ -76,7 +68,6 @@ def post_create(request):
 
 @login_required
 def post_edit(request, post_id):
-    """Функция представления редактирования поста пользователя"""
     post = get_object_or_404(Post, pk=post_id)
     if not request.user == post.author:
         return redirect('posts:post_detail', post_id)

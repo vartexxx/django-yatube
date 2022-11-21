@@ -1,7 +1,6 @@
 import shutil
 import tempfile
 
-
 from django.conf import settings
 from django.test import Client, TestCase, override_settings
 from django.core.cache import cache
@@ -9,7 +8,6 @@ from django.core.files.uploadedfile import SimpleUploadedFile
 from django.urls import reverse
 
 from ..models import Group, Post, User
-
 
 USERNAME = 'user'
 TEST_USER = 'test_user'
